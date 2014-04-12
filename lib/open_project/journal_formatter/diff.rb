@@ -88,12 +88,14 @@ class OpenProject::JournalFormatter::Diff < JournalFormatter::Base
   def default_attributes(options)
     if options[:only_path]
       { :only_path => options[:only_path],
+        :no_html => options[:no_html],
         # setting :script_name is a hack that allows for setting the sub uri.
         # I am not yet sure why url_for normally returns the sub uri but does not within
         # this class.
         :script_name => ::OpenProject::Configuration.rails_relative_url_root }
     else
       { :only_path => options[:only_path],
+        :no_html => options[:no_html],
         :protocol => Setting.protocol,
         :host => Setting.host_name }
     end

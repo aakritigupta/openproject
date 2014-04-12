@@ -39,6 +39,35 @@ describe OpenProject::JournalFormatter::Diff do
     Rails.application.routes.url_helpers
   end
 
+  def url(options = {})
+    options = {:no_html => false, :only_path => true}.merge(options)
+    url_helper.journal_diff_path(:id => journal.id,
+                                 :field => key.downcase,
+                                 :no_html => options[:no_html])
+  end
+
+  def full_url(options = {})
+    options = {:no_html => false, :only_path => true}.merge(options)
+    url_helper.journal_diff_url(:id => journal.id,
+                                :field => key.downcase,
+                                :protocol => Setting.protocol,
+                                :host => Setting.host_name,
+                                :only_path => options[:only_path],
+                                :no_html => options[:no_html])
+  end
+
+  def link(options = {})
+    link_to(I18n.t(:label_details),
+                   url(options),
+                   :class => 'description-details')
+  end
+
+  def full_url_link(options = {})
+   link_to(I18n.t(:label_details),
+                  full_url(options),
+                  :class => 'description-details')
+  end
+
   Struct.new("TestJournal", :id, :journable)
 
   let(:klass) { OpenProject::JournalFormatter::Diff }
@@ -48,15 +77,6 @@ describe OpenProject::JournalFormatter::Diff do
   end
   let(:instance) { klass.new(journal) }
   let(:key) { "description" }
-
-  let(:url) {  url_helper.journal_diff_path(:id => journal.id,
-                                            :field => key.downcase)}
-  let(:full_url) { url_helper.journal_diff_url(:id => journal.id,
-                                               :field => key.downcase,
-                                               :protocol => Setting.protocol,
-                                               :host => Setting.host_name) }
-  let(:link) { link_to(I18n.t(:label_details), url, :class => 'description-details') }
-  let(:full_url_link) { link_to(I18n.t(:label_details), full_url, :class => 'description-details') }
 
   describe :render do
     describe "WITH the first value beeing nil, and the second a string" do
@@ -103,37 +123,41 @@ describe OpenProject::JournalFormatter::Diff do
 
     describe "WITH the first value beeing nil, and the second a string
               WITH specifying not to output html" do
+      options = { :no_html => true }
       let(:expected) { I18n.t(:text_journal_set_with_diff,
                               :label => key.camelize,
-                              :link => url) }
+                              :link => url(options)) }
 
-      it { instance.render(key, [nil, "new value"], :no_html => true).should == expected }
+      it { instance.render(key, [nil, "new value"], options).should == expected }
     end
 
     describe "WITH the first value beeing a string, and the second a string
               WITH specifying not to output html" do
+      options = { :no_html => true }
       let(:expected) { I18n.t(:text_journal_changed_with_diff,
                               :label => key.camelize,
-                              :link => url) }
+                              :link => url(options)) }
 
-      it { instance.render(key, ["old value", "new value"], :no_html => true).should == expected }
+      it { instance.render(key, ["old value", "new value"], options).should == expected }
     end
 
     describe "WITH the first value beeing a string, and the second a string
               WITH specifying to output a full url" do
+      options = { :only_path => false}
       let(:expected) { I18n.t(:text_journal_changed_with_diff,
                               :label => "<strong>#{key.camelize}</strong>",
-                              :link => full_url_link) }
+                              :link => full_url_link(options)) }
 
-      it { instance.render(key, ["old value", "new value"], :only_path => false).should == expected }
+      it { instance.render(key, ["old value", "new value"], options).should == expected }
     end
 
     describe "WITH the first value beeing a string, and the second nil" do
+      options = { :no_html => true }
       let(:expected) { I18n.t(:text_journal_deleted_with_diff,
                               :label => key.camelize,
-                              :link => url) }
+                              :link => url(options)) }
 
-      it { instance.render(key, ["old_value", nil], :no_html => true).should == expected }
+      it { instance.render(key, ["old_value", nil], options).should == expected }
     end
   end
 end
